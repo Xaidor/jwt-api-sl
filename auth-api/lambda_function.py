@@ -1,24 +1,24 @@
 import json
-from shared.jwt_utils import generate_token
+import jwt
+import datetime
+
+# In production, store this in AWS Secrets Manager or environment variables
+SECRET_KEY = "my_super_secret_key"
 
 def lambda_handler(event, context):
-    try:
-        body = json.loads(event.get("body", "{}"))
-        username = body.get("username", "guest")
+    
+    # Create payload (data stored in the token)
+    payload = {
+        "user": "authorized_user",
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+    }
 
-        token = generate_token(username)
+    # Generate token
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "token": token
-            })
-        }
-
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "error": str(e)
-            })
-        }
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "token": token
+        })
+    }
